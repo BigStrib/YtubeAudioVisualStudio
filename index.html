@@ -3,160 +3,238 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Watch Later</title>
-    <link rel="stylesheet" href="style.css">
-    <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@300;400;500;700&display=swap" rel="stylesheet">
-    <link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet">
+    <title>Ytube Audio Visual Studio</title>
+    <link rel="stylesheet" href="styles.css">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
 </head>
 <body>
+    <canvas id="vizCanvas"></canvas>
 
-<!-- Top Bar -->
-<div class="topbar">
-    <div class="topbar-left">
-        <div class="topbar-logo">
-            <svg viewBox="0 0 90 20" xmlns="http://www.w3.org/2000/svg" class="yt-logo">
-                <path d="M17.8 3.2c-.2-.7-.8-1.3-1.5-1.5C14.9 1.2 10 1.2 10 1.2s-4.9 0-6.3.5C3 1.9 2.4 2.5 2.2 3.2 1.7 4.6 1.7 10 1.7 10s0 5.4.5 6.8c.2.7.8 1.3 1.5 1.5 1.4.5 6.3.5 6.3.5s4.9 0 6.3-.5c.7-.2 1.3-.8 1.5-1.5.5-1.4.5-6.8.5-6.8s0-5.4-.5-6.8z" fill="#b91c1c"/>
-                <path d="M8 13.5l4.2-3.5L8 6.5v7z" fill="#fff"/>
-            </svg>
-            <span class="logo-text">Watch Later</span>
+    <div id="videoContainer">
+        <div id="videoHeader">
+            <div id="videoDragHandle">⠿</div>
+            <div id="videoControls">
+                <button id="hideVideoBtn" title="Hide Video">
+                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M17.94 17.94A10.07 10.07 0 0 1 12 20c-7 0-11-8-11-8a18.45 18.45 0 0 1 5.06-5.94M9.9 4.24A9.12 9.12 0 0 1 12 4c7 0 11 8 11 8a18.5 18.5 0 0 1-2.16 3.19m-6.72-1.07a3 3 0 1 1-4.24-4.24"/><line x1="1" y1="1" x2="23" y2="23"/></svg>
+                </button>
+            </div>
+        </div>
+        <div id="videoWrapper">
+            <iframe id="videoFrame" allowfullscreen allow="autoplay; encrypted-media"></iframe>
+        </div>
+        <div class="resize-handle"></div>
+    </div>
+
+    <div id="videoOpacityBar" class="hover-ui">
+        <label>
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><path d="M12 2a10 10 0 0 1 0 20"/></svg>
+            <input type="range" id="videoOpacitySlider" min="0" max="100" value="100">
+        </label>
+    </div>
+
+    <div id="showVideoBtn" class="hover-ui" title="Show Video">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg>
+        <span>Show Video</span>
+    </div>
+
+    <!-- Transport Bar -->
+    <div id="transportBar" class="hover-ui">
+        <div id="nowPlayingInfo">
+            <div id="npTitle">No track loaded</div>
+            <div id="npSub">Add videos to get started</div>
+        </div>
+        <div id="transportControls">
+            <button id="prevTrackBtn" title="Previous">
+                <svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor"><path d="M6 6h2v12H6zm3.5 6l8.5 6V6z"/></svg>
+            </button>
+            <button id="playPauseBtn" title="Play" class="transport-main">
+                <svg width="22" height="22" viewBox="0 0 24 24" fill="currentColor"><polygon points="5 3 19 12 5 21 5 3"/></svg>
+            </button>
+            <button id="nextTrackBtn" title="Next">
+                <svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor"><path d="M16 6h2v12h-2zm-3.5 6L4 6v12z" transform="scale(-1,1) translate(-24,0)"/></svg>
+            </button>
         </div>
     </div>
-</div>
 
-<!-- Main Content -->
-<div class="main-container">
-    <!-- Left Panel -->
-    <div class="playlist-panel" id="playlistPanel">
-        <div class="playlist-header">
-            <div class="playlist-header-top">
-                <div>
-                    <h1 class="header-title">Watch Later</h1>
-                    <div class="playlist-meta">
-                        <span id="videoCount">0 videos</span>
+    <!-- Side Panels -->
+    <div id="uiOverlay">
+        <div id="playlistPanel" class="panel">
+            <div class="panel-header">
+                <div class="panel-title">
+                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M9 18V5l12-2v13"/><circle cx="6" cy="18" r="3"/><circle cx="18" cy="16" r="3"/></svg>
+                    <span>Library</span>
+                    <span class="badge" id="trackCount">0</span>
+                </div>
+                <div class="panel-actions">
+                    <button id="importBtn" title="Import">
+                        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
+                    </button>
+                    <button id="exportBtn" title="Export">
+                        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/></svg>
+                    </button>
+                </div>
+            </div>
+            <div class="panel-body">
+                <div id="songInputArea">
+                    <textarea id="songInput" placeholder="Paste YouTube URLs (one per line)..." rows="2"></textarea>
+                    <button id="addSongBtn">
+                        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+                    </button>
+                </div>
+                <ul id="playlistList"></ul>
+            </div>
+        </div>
+
+        <div id="vizPanel" class="panel">
+            <div class="panel-header">
+                <div class="panel-title">
+                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="1" y="6" width="4" height="12" rx="1"/><rect x="7" y="3" width="4" height="18" rx="1"/><rect x="13" y="8" width="4" height="8" rx="1"/><rect x="19" y="5" width="4" height="14" rx="1"/></svg>
+                    <span>Visualizers</span>
+                </div>
+                <div class="panel-actions">
+                    <button id="vizSettingsBtn" title="Create / Edit">
+                        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+                    </button>
+                </div>
+            </div>
+            <div class="panel-body">
+                <ul id="vizList"></ul>
+            </div>
+        </div>
+    </div>
+
+    <!-- Visualizer Editor Modal -->
+    <div id="vizModal" class="modal hidden">
+        <div class="modal-content viz-editor-modal">
+            <div class="modal-header">
+                <h2>Visualizer Editor</h2>
+                <button class="modal-close" data-modal="vizModal">
+                    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+                </button>
+            </div>
+            <div class="modal-body viz-editor-body">
+                <div class="viz-editor-left">
+                    <div class="form-group">
+                        <label>Name</label>
+                        <input type="text" id="vizName" placeholder="My Visualizer">
+                    </div>
+                    <div class="form-group">
+                        <label>Draw Code</label>
+                        <textarea id="vizCode" rows="14" spellcheck="false" placeholder="// Available: ctx, canvas, analyser, dataArray, bufferLength, WIDTH, HEIGHT, COLOR, BGCOLOR, BAR_WIDTH"></textarea>
+                    </div>
+                    <div class="overrides-section">
+                        <h4>Preset Overrides</h4>
+                        <p class="hint">These values override any hardcoded values in your code</p>
+                        <div class="override-grid">
+                            <div class="override-item">
+                                <label class="toggle-label">
+                                    <input type="checkbox" id="overrideColor" checked>
+                                    <span>Color</span>
+                                </label>
+                                <input type="color" id="presetColor" value="#6366f1">
+                            </div>
+                            <div class="override-item">
+                                <label class="toggle-label">
+                                    <input type="checkbox" id="overrideBgColor" checked>
+                                    <span>Background</span>
+                                </label>
+                                <input type="color" id="presetBgColor" value="#0a0a0f">
+                            </div>
+                            <div class="override-item">
+                                <label class="toggle-label">
+                                    <input type="checkbox" id="overrideWidth">
+                                    <span>Bar Width</span>
+                                </label>
+                                <div class="range-row">
+                                    <input type="range" id="presetWidth" min="1" max="50" value="5">
+                                    <span id="presetWidthVal" class="range-val">5</span>
+                                </div>
+                            </div>
+                            <div class="override-item">
+                                <label class="toggle-label">
+                                    <input type="checkbox" id="overrideSensitivity">
+                                    <span>FFT Size</span>
+                                </label>
+                                <div class="range-row">
+                                    <input type="range" id="presetSensitivity" min="5" max="11" value="8">
+                                    <span id="presetSensitivityVal" class="range-val">256</span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="form-actions">
+                        <button id="saveVizBtn" class="btn-primary">Save Visualizer</button>
+                    </div>
+                </div>
+                <div class="viz-editor-right">
+                    <div class="preview-section">
+                        <div class="preview-header">
+                            <span>Live Preview</span>
+                        </div>
+                        <canvas id="previewCanvas"></canvas>
+                    </div>
+                    <div class="manage-section">
+                        <h4>Saved Visualizers</h4>
+                        <ul id="manageVizList"></ul>
                     </div>
                 </div>
             </div>
-            <div class="playlist-actions">
-                <button class="btn-play-all" onclick="playAll()" id="playAllBtn" disabled>
-                    <span class="material-icons" style="font-size:20px">play_arrow</span>
-                    <span class="action-label">Play all</span>
+        </div>
+    </div>
+
+    <!-- Import Modal -->
+    <div id="importModal" class="modal hidden">
+        <div class="modal-content modal-sm">
+            <div class="modal-header">
+                <h2>Import Session</h2>
+                <button class="modal-close" data-modal="importModal">
+                    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
                 </button>
-                <button class="btn-shuffle" onclick="shufflePlaylist()" id="shuffleBtn" disabled>
-                    <span class="material-icons" style="font-size:20px">shuffle</span>
-                    <span class="action-label">Shuffle</span>
-                </button>
-                <div class="dropdown-wrapper">
-                    <button class="btn-icon-action" onclick="toggleDropdown(event)" title="More options">
-                        <span class="material-icons">more_vert</span>
-                    </button>
-                    <div class="dropdown-menu" id="dropdownMenu">
-                        <div class="dropdown-item" onclick="exportPlaylist()">
-                            <span class="material-icons">file_download</span>
-                            <span>Export playlist (.json)</span>
-                        </div>
-                        <div class="dropdown-item" onclick="document.getElementById('importInput').click()">
-                            <span class="material-icons">file_upload</span>
-                            <span>Import playlist (.json)</span>
-                        </div>
-                        <div class="dropdown-item" onclick="showClearAllModal()">
-                            <span class="material-icons">delete_outline</span>
-                            <span>Remove all videos</span>
-                        </div>
+            </div>
+            <div class="modal-body">
+                <p class="modal-desc">Import a previously exported session. You can paste the JSON or browse for a .json file.</p>
+                <div class="import-tabs">
+                    <button class="import-tab active" data-tab="paste">Paste JSON</button>
+                    <button class="import-tab" data-tab="file">Browse File</button>
+                </div>
+                <div id="importPasteArea" class="import-area">
+                    <textarea id="importData" rows="10" placeholder='{"playlist":[...],"visualizers":[...]}'></textarea>
+                </div>
+                <div id="importFileArea" class="import-area hidden">
+                    <div class="file-drop-zone" id="fileDropZone">
+                        <svg width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
+                        <p>Drop .json file here or click to browse</p>
+                        <span id="fileNameDisplay"></span>
                     </div>
+                    <input type="file" id="importFile" accept=".json" class="hidden-input">
                 </div>
-                <input type="file" id="importInput" class="hidden-input" accept=".json" onchange="importPlaylist(event)">
-            </div>
-            <div class="autoplay-toggle">
-                <label class="toggle-switch">
-                    <input type="checkbox" id="autoplayToggle" checked>
-                    <span class="toggle-slider"></span>
-                </label>
-                <span class="action-label">Autoplay</span>
+                <div class="form-actions">
+                    <button id="doImportBtn" class="btn-primary">Import Session</button>
+                </div>
             </div>
         </div>
+    </div>
 
-        <!-- Add URL -->
-        <div class="add-url-section">
-            <div class="add-url-wrapper">
-                <input type="text" class="add-url-input" id="urlInput" placeholder="Paste YouTube URL here..." onkeydown="if(event.key==='Enter')addVideo()">
-                <button class="add-url-btn" id="addBtn" onclick="addVideo()">
-                    <span class="material-icons" style="font-size:18px">add</span>
-                    <span class="action-label">Add</span>
+    <!-- Export Modal -->
+    <div id="exportModal" class="modal hidden">
+        <div class="modal-content modal-sm">
+            <div class="modal-header">
+                <h2>Export Session</h2>
+                <button class="modal-close" data-modal="exportModal">
+                    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
                 </button>
             </div>
-            <div class="error-msg" id="errorMsg"></div>
-        </div>
-
-        <!-- Now Playing -->
-        <div class="now-playing-section" id="nowPlayingSection" style="display:none;">
-            <div class="now-playing-label">NOW PLAYING</div>
-            <div class="now-playing-item" id="nowPlayingItem">
-                <div class="now-playing-eq">
-                    <div class="eq-bar"><span></span><span></span><span></span><span></span></div>
-                </div>
-                <div class="thumbnail-container now-playing-thumb">
-                    <img id="nowPlayingThumb" src="" alt="">
-                    <span class="duration-badge" id="nowPlayingDuration"></span>
-                    <button class="remove-btn" onclick="event.stopPropagation();showStopPlayingModal()" title="Stop playing">
-                        <span class="material-icons">close</span>
-                    </button>
-                </div>
-                <div class="video-info">
-                    <div class="video-title" id="nowPlayingTitle"></div>
-                    <div class="video-channel" id="nowPlayingChannel"></div>
-                </div>
-            </div>
-        </div>
-
-        <!-- Video List -->
-        <div class="video-list" id="videoList">
-            <div class="empty-state" id="emptyState">
-                <span class="material-icons" style="font-size:60px;opacity:0.4">playlist_play</span>
-                <p>No videos yet.<br>Paste a YouTube URL above to get started.</p>
-            </div>
-        </div>
-    </div>
-
-    <!-- Resize Handle -->
-    <div class="resize-handle" id="resizeHandle">
-        <div class="resize-grip">
-            <span></span><span></span><span></span>
-        </div>
-    </div>
-
-    <!-- Right Panel -->
-    <div class="player-panel" id="playerPanel">
-        <div class="player-wrapper" id="playerWrapper">
-            <div class="player-container" id="playerContainer">
-                <div class="player-placeholder" id="playerPlaceholder">
-                    <span class="material-icons" style="font-size:80px;opacity:0.4">play_circle_outline</span>
-                    <p>Select a video to start watching</p>
+            <div class="modal-body">
+                <p class="modal-desc">Copy or download your entire session — playlist and visualizers included.</p>
+                <textarea id="exportData" rows="10" readonly></textarea>
+                <div class="form-actions">
+                    <button id="copyExportBtn" class="btn-primary">Copy to Clipboard</button>
+                    <button id="downloadExportBtn" class="btn-secondary">Download .json</button>
                 </div>
             </div>
         </div>
     </div>
-</div>
 
-<!-- Toast -->
-<div class="toast" id="toast"></div>
-
-<!-- Custom Modal -->
-<div class="modal-overlay" id="modalOverlay">
-    <div class="modal-container">
-        <div class="modal-header">
-            <span class="material-icons modal-icon" id="modalIcon">warning</span>
-            <h3 class="modal-title" id="modalTitle">Confirm Action</h3>
-        </div>
-        <div class="modal-body">
-            <p class="modal-message" id="modalMessage">Are you sure?</p>
-        </div>
-        <div class="modal-footer">
-            <button class="modal-btn modal-btn-cancel" id="modalCancel">Cancel</button>
-            <button class="modal-btn modal-btn-confirm" id="modalConfirm">Confirm</button>
-        </div>
-    </div>
-</div>
-
-<script src="script.js"></script>
+    <script src="script.js"></script>
 </body>
 </html>

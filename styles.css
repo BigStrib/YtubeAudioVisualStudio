@@ -1,0 +1,1115 @@
+/* ── Reset & Base ── */
+*, *::before, *::after {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+}
+
+:root {
+    --bg-primary: #0a0a0f;
+    --bg-secondary: #12121a;
+    --bg-tertiary: #1a1a28;
+    --bg-elevated: #222233;
+    --border: rgba(255, 255, 255, 0.06);
+    --border-hover: rgba(255, 255, 255, 0.12);
+    --text-primary: #e8e8f0;
+    --text-secondary: #8888a0;
+    --text-muted: #555566;
+    --accent: #6366f1;
+    --accent-hover: #818cf8;
+    --accent-glow: rgba(99, 102, 241, 0.25);
+    --accent-r: 99;
+    --accent-g: 102;
+    --accent-b: 241;
+    --danger: #ef4444;
+    --success: #22c55e;
+    --surface-glass: rgba(12, 12, 20, 0.85);
+    --radius-sm: 6px;
+    --radius-md: 10px;
+    --radius-lg: 14px;
+    --radius-xl: 20px;
+    --font-sans: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+    --font-mono: 'JetBrains Mono', 'Fira Code', monospace;
+    --transition: 0.25s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+body {
+    background: var(--bg-primary);
+    color: var(--text-primary);
+    font-family: var(--font-sans);
+    overflow: hidden;
+    height: 100vh;
+    width: 100vw;
+    cursor: default;
+}
+
+/* ── Canvas ── */
+#vizCanvas {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    z-index: 0;
+}
+
+/* ── Video Container ── */
+#videoContainer {
+    position: fixed;
+    top: 30px;
+    right: 30px;
+    width: 420px;
+    height: 240px;
+    z-index: 10;
+    border-radius: var(--radius-lg);
+    overflow: hidden;
+    box-shadow: 0 8px 40px rgba(0, 0, 0, 0.6);
+    transition: opacity var(--transition);
+    background: #000;
+}
+
+#videoContainer.hidden-video {
+    opacity: 0 !important;
+    pointer-events: none;
+}
+
+#videoHeader {
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 6px 10px;
+    background: linear-gradient(180deg, rgba(0,0,0,0.7) 0%, transparent 100%);
+    z-index: 2;
+    opacity: 0;
+    transition: opacity var(--transition);
+}
+
+#videoContainer:hover #videoHeader {
+    opacity: 1;
+}
+
+#videoDragHandle {
+    cursor: move;
+    color: rgba(255,255,255,0.5);
+    font-size: 16px;
+    letter-spacing: 2px;
+    user-select: none;
+    padding: 2px 6px;
+}
+
+#videoControls button {
+    background: rgba(255,255,255,0.1);
+    border: none;
+    color: #fff;
+    width: 28px;
+    height: 28px;
+    border-radius: 50%;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: all var(--transition);
+}
+
+#videoControls button:hover {
+    background: rgba(255,255,255,0.25);
+}
+
+#videoWrapper {
+    width: 100%;
+    height: 100%;
+    position: relative;
+}
+
+#videoFrame {
+    width: 100%;
+    height: 100%;
+    border: none;
+    display: block;
+}
+
+.resize-handle {
+    position: absolute;
+    bottom: 0;
+    right: 0;
+    width: 20px;
+    height: 20px;
+    cursor: nwse-resize;
+    z-index: 3;
+    opacity: 0;
+    transition: opacity var(--transition);
+}
+
+.resize-handle::after {
+    content: '';
+    position: absolute;
+    bottom: 4px;
+    right: 4px;
+    width: 10px;
+    height: 10px;
+    border-right: 2px solid rgba(255,255,255,0.4);
+    border-bottom: 2px solid rgba(255,255,255,0.4);
+    border-radius: 0 0 2px 0;
+}
+
+#videoContainer:hover .resize-handle {
+    opacity: 1;
+}
+
+/* ── Hover-only UI ── */
+.hover-ui {
+    opacity: 0;
+    pointer-events: none;
+    transition: opacity 0.4s ease;
+}
+
+body:hover .hover-ui {
+    opacity: 1;
+    pointer-events: all;
+}
+
+#videoOpacityBar {
+    position: fixed;
+    top: 278px;
+    right: 30px;
+    z-index: 11;
+    background: var(--surface-glass);
+    backdrop-filter: blur(20px);
+    padding: 8px 14px;
+    border-radius: var(--radius-md);
+    border: 1px solid var(--border);
+    font-size: 12px;
+}
+
+#videoOpacityBar label {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    color: var(--text-secondary);
+}
+
+#videoOpacitySlider {
+    width: 100px;
+    accent-color: var(--accent);
+}
+
+#showVideoBtn {
+    position: fixed;
+    top: 10px;
+    right: 10px;
+    z-index: 100;
+    background: var(--surface-glass);
+    backdrop-filter: blur(20px);
+    border: 1px solid var(--border);
+    color: var(--text-secondary);
+    padding: 8px 16px;
+    border-radius: var(--radius-xl);
+    cursor: pointer;
+    font-size: 12px;
+    font-family: var(--font-sans);
+    display: none;
+    align-items: center;
+    gap: 6px;
+    transition: all var(--transition);
+}
+
+#showVideoBtn:hover {
+    background: var(--bg-elevated);
+    color: var(--text-primary);
+    border-color: var(--accent);
+}
+
+body:hover #showVideoBtn.visible {
+    opacity: 1;
+    pointer-events: all;
+}
+
+#showVideoBtn.visible {
+    display: flex;
+}
+
+/* ── Transport Bar ── */
+#transportBar {
+    position: fixed;
+    bottom: 0;
+    left: 0;
+    right: 0;
+    z-index: 20;
+    background: linear-gradient(180deg, transparent 0%, rgba(0,0,0,0.8) 40%, rgba(10,10,15,0.95) 100%);
+    backdrop-filter: blur(20px);
+    padding: 20px 30px 24px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+#nowPlayingInfo {
+    flex: 1;
+    min-width: 0;
+}
+
+#npTitle {
+    font-size: 14px;
+    font-weight: 500;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    color: var(--text-primary);
+}
+
+#npSub {
+    font-size: 11px;
+    color: var(--text-muted);
+    margin-top: 2px;
+}
+
+#transportControls {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+#transportControls button {
+    background: none;
+    border: none;
+    color: var(--text-secondary);
+    cursor: pointer;
+    width: 40px;
+    height: 40px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: all var(--transition);
+}
+
+#transportControls button:hover {
+    color: var(--text-primary);
+    background: rgba(255,255,255,0.06);
+}
+
+#transportControls .transport-main {
+    width: 48px;
+    height: 48px;
+    background: var(--accent);
+    color: #fff;
+    border-radius: 50%;
+}
+
+#transportControls .transport-main:hover {
+    background: var(--accent-hover);
+    box-shadow: 0 0 20px var(--accent-glow);
+    transform: scale(1.05);
+}
+
+/* ── Panels ── */
+#uiOverlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    z-index: 5;
+    pointer-events: none;
+    opacity: 0;
+    transition: opacity 0.4s ease;
+}
+
+body:hover #uiOverlay {
+    opacity: 1;
+}
+
+.panel {
+    position: absolute;
+    background: var(--surface-glass);
+    backdrop-filter: blur(30px);
+    border: 1px solid var(--border);
+    border-radius: var(--radius-lg);
+    overflow: hidden;
+    pointer-events: all;
+    box-shadow: 0 10px 50px rgba(0, 0, 0, 0.5);
+    display: flex;
+    flex-direction: column;
+}
+
+#playlistPanel {
+    left: 20px;
+    top: 50%;
+    transform: translateY(-50%);
+    width: 300px;
+    max-height: 70vh;
+}
+
+#vizPanel {
+    right: 20px;
+    bottom: 100px;
+    width: 260px;
+    max-height: 40vh;
+}
+
+.panel-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 14px 16px;
+    border-bottom: 1px solid var(--border);
+    cursor: move;
+    user-select: none;
+    flex-shrink: 0;
+}
+
+.panel-title {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    font-size: 13px;
+    font-weight: 600;
+    color: var(--text-primary);
+    letter-spacing: 0.02em;
+}
+
+.badge {
+    background: rgba(var(--accent-r), var(--accent-g), var(--accent-b), 0.15);
+    color: var(--accent);
+    font-size: 10px;
+    font-weight: 600;
+    padding: 2px 7px;
+    border-radius: 10px;
+    min-width: 20px;
+    text-align: center;
+}
+
+.panel-actions {
+    display: flex;
+    gap: 2px;
+}
+
+.panel-actions button {
+    background: none;
+    border: none;
+    color: var(--text-muted);
+    cursor: pointer;
+    width: 30px;
+    height: 30px;
+    border-radius: var(--radius-sm);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: all var(--transition);
+}
+
+.panel-actions button:hover {
+    color: var(--accent);
+    background: rgba(var(--accent-r), var(--accent-g), var(--accent-b), 0.1);
+}
+
+.panel-body {
+    padding: 10px;
+    overflow-y: auto;
+    flex: 1;
+    min-height: 0;
+}
+
+.panel-body::-webkit-scrollbar {
+    width: 4px;
+}
+
+.panel-body::-webkit-scrollbar-thumb {
+    background: rgba(255,255,255,0.08);
+    border-radius: 2px;
+}
+
+/* ── Song Input ── */
+#songInputArea {
+    display: flex;
+    gap: 6px;
+    margin-bottom: 10px;
+    align-items: flex-end;
+}
+
+#songInput {
+    flex: 1;
+    padding: 8px 12px;
+    border: 1px solid var(--border);
+    border-radius: var(--radius-md);
+    background: rgba(0,0,0,0.3);
+    color: var(--text-primary);
+    font-size: 12px;
+    font-family: var(--font-sans);
+    outline: none;
+    transition: border-color var(--transition), box-shadow var(--transition);
+    resize: vertical;
+    min-height: 36px;
+    line-height: 1.5;
+}
+
+#songInput:focus {
+    border-color: var(--accent);
+    box-shadow: 0 0 0 3px var(--accent-glow);
+}
+
+#addSongBtn {
+    width: 36px;
+    height: 36px;
+    flex-shrink: 0;
+    background: var(--accent);
+    border: none;
+    border-radius: var(--radius-md);
+    color: #fff;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: all var(--transition);
+}
+
+#addSongBtn:hover {
+    background: var(--accent-hover);
+    box-shadow: 0 0 15px var(--accent-glow);
+}
+
+/* ── Lists ── */
+#playlistList, #vizList, #manageVizList {
+    list-style: none;
+}
+
+#playlistList li, #vizList li {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 8px 10px;
+    margin-bottom: 2px;
+    border-radius: var(--radius-sm);
+    cursor: pointer;
+    transition: all var(--transition);
+    font-size: 12px;
+    color: var(--text-secondary);
+    position: relative;
+}
+
+#playlistList li:hover, #vizList li:hover {
+    background: rgba(255,255,255,0.04);
+    color: var(--text-primary);
+}
+
+#playlistList li.active {
+    background: rgba(var(--accent-r), var(--accent-g), var(--accent-b), 0.1);
+    color: var(--text-primary);
+}
+
+#playlistList li.active::before {
+    content: '';
+    position: absolute;
+    left: 0;
+    top: 4px;
+    bottom: 4px;
+    width: 2px;
+    background: var(--accent);
+    border-radius: 1px;
+}
+
+#vizList li.active {
+    background: rgba(var(--accent-r), var(--accent-g), var(--accent-b), 0.1);
+    color: var(--text-primary);
+}
+
+#vizList li.active::before {
+    content: '';
+    position: absolute;
+    left: 0;
+    top: 4px;
+    bottom: 4px;
+    width: 2px;
+    background: var(--accent);
+    border-radius: 1px;
+}
+
+.song-title, .viz-title {
+    flex: 1;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+    display: flex;
+    align-items: center;
+    gap: 6px;
+}
+
+.song-index {
+    color: var(--text-muted);
+    font-size: 10px;
+    font-weight: 500;
+    min-width: 16px;
+    font-variant-numeric: tabular-nums;
+}
+
+.song-actions, .viz-actions {
+    display: flex;
+    gap: 2px;
+    opacity: 0;
+    transition: opacity var(--transition);
+}
+
+li:hover .song-actions,
+li:hover .viz-actions {
+    opacity: 1;
+}
+
+.song-actions button, .viz-actions button {
+    background: none;
+    border: none;
+    color: var(--text-muted);
+    cursor: pointer;
+    font-size: 11px;
+    padding: 3px 5px;
+    border-radius: 4px;
+    transition: all var(--transition);
+    font-family: var(--font-sans);
+}
+
+.song-actions button:hover, .viz-actions button:hover {
+    color: var(--text-primary);
+    background: rgba(255,255,255,0.08);
+}
+
+.song-actions .remove-btn:hover {
+    color: var(--danger);
+    background: rgba(239, 68, 68, 0.1);
+}
+
+.now-playing-eq {
+    display: flex;
+    align-items: flex-end;
+    gap: 1px;
+    height: 12px;
+    margin-right: 4px;
+}
+
+.now-playing-eq span {
+    display: block;
+    width: 2px;
+    background: var(--accent);
+    border-radius: 1px;
+    animation: eqBar 0.5s ease infinite alternate;
+}
+
+.now-playing-eq span:nth-child(1) { height: 4px; animation-delay: 0s; }
+.now-playing-eq span:nth-child(2) { height: 8px; animation-delay: 0.15s; }
+.now-playing-eq span:nth-child(3) { height: 5px; animation-delay: 0.3s; }
+.now-playing-eq span:nth-child(4) { height: 10px; animation-delay: 0.1s; }
+
+@keyframes eqBar {
+    0% { height: 2px; }
+    100% { height: 12px; }
+}
+
+/* ── Modals ── */
+.modal {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    z-index: 1000;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: rgba(0, 0, 0, 0.6);
+    backdrop-filter: blur(8px);
+}
+
+.modal.hidden {
+    display: none;
+}
+
+.modal-content {
+    background: var(--bg-secondary);
+    border: 1px solid var(--border);
+    border-radius: var(--radius-xl);
+    width: 90%;
+    max-width: 600px;
+    max-height: 88vh;
+    overflow-y: auto;
+    box-shadow: 0 30px 80px rgba(0, 0, 0, 0.7);
+    animation: modalIn 0.25s ease;
+}
+
+.viz-editor-modal {
+    max-width: 960px;
+}
+
+@keyframes modalIn {
+    from { opacity: 0; transform: translateY(10px) scale(0.98); }
+    to { opacity: 1; transform: translateY(0) scale(1); }
+}
+
+.modal-sm {
+    max-width: 520px;
+}
+
+.modal-content::-webkit-scrollbar {
+    width: 4px;
+}
+
+.modal-content::-webkit-scrollbar-thumb {
+    background: rgba(255,255,255,0.1);
+    border-radius: 2px;
+}
+
+.modal-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 20px 24px;
+    border-bottom: 1px solid var(--border);
+}
+
+.modal-header h2 {
+    font-size: 16px;
+    font-weight: 600;
+    letter-spacing: -0.01em;
+}
+
+.modal-close {
+    background: none;
+    border: none;
+    color: var(--text-muted);
+    cursor: pointer;
+    width: 32px;
+    height: 32px;
+    border-radius: var(--radius-sm);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: all var(--transition);
+}
+
+.modal-close:hover {
+    color: var(--text-primary);
+    background: rgba(255,255,255,0.06);
+}
+
+.modal-body {
+    padding: 24px;
+}
+
+.modal-desc {
+    font-size: 13px;
+    color: var(--text-secondary);
+    margin-bottom: 16px;
+    line-height: 1.5;
+}
+
+/* ── Viz Editor ── */
+.viz-editor-body {
+    display: flex;
+    gap: 24px;
+}
+
+.viz-editor-left {
+    flex: 1;
+    min-width: 0;
+}
+
+.viz-editor-right {
+    width: 320px;
+    flex-shrink: 0;
+    display: flex;
+    flex-direction: column;
+    gap: 16px;
+}
+
+.preview-section {
+    border: 1px solid var(--border);
+    border-radius: var(--radius-md);
+    overflow: hidden;
+    background: #000;
+}
+
+.preview-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 8px 12px;
+    background: var(--bg-tertiary);
+    font-size: 11px;
+    font-weight: 500;
+    color: var(--text-muted);
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+}
+
+.btn-sm {
+    background: rgba(255,255,255,0.06);
+    border: 1px solid var(--border);
+    color: var(--text-secondary);
+    padding: 3px 10px;
+    border-radius: var(--radius-sm);
+    font-size: 10px;
+    font-family: var(--font-sans);
+    cursor: pointer;
+    transition: all var(--transition);
+    text-transform: uppercase;
+    letter-spacing: 0.04em;
+}
+
+.btn-sm:hover {
+    background: rgba(255,255,255,0.1);
+    color: var(--text-primary);
+}
+
+#previewCanvas {
+    width: 100%;
+    height: 180px;
+    display: block;
+}
+
+.manage-section {
+    flex: 1;
+    min-height: 0;
+    overflow-y: auto;
+}
+
+.manage-section h4 {
+    font-size: 11px;
+    text-transform: uppercase;
+    letter-spacing: 0.06em;
+    color: var(--text-muted);
+    margin-bottom: 8px;
+    font-weight: 500;
+}
+
+#manageVizList li {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 6px 8px;
+    margin-bottom: 2px;
+    border-radius: var(--radius-sm);
+    font-size: 12px;
+    color: var(--text-secondary);
+    transition: all var(--transition);
+}
+
+#manageVizList li:hover {
+    background: rgba(255,255,255,0.04);
+}
+
+#manageVizList .manage-actions {
+    display: flex;
+    gap: 2px;
+}
+
+#manageVizList button {
+    background: none;
+    border: none;
+    color: var(--text-muted);
+    cursor: pointer;
+    font-size: 11px;
+    padding: 3px 6px;
+    border-radius: 4px;
+    font-family: var(--font-sans);
+    transition: all var(--transition);
+}
+
+#manageVizList button:hover {
+    color: var(--text-primary);
+    background: rgba(255,255,255,0.06);
+}
+
+#manageVizList button.delete-viz:hover {
+    color: var(--danger);
+    background: rgba(239, 68, 68, 0.08);
+}
+
+/* ── Forms ── */
+.form-group {
+    margin-bottom: 16px;
+}
+
+.form-group > label {
+    display: block;
+    font-size: 11px;
+    color: var(--text-muted);
+    margin-bottom: 6px;
+    font-weight: 500;
+    text-transform: uppercase;
+    letter-spacing: 0.06em;
+}
+
+.form-group input[type="text"],
+.form-group textarea,
+.modal-body textarea {
+    width: 100%;
+    padding: 10px 12px;
+    background: rgba(0, 0, 0, 0.3);
+    border: 1px solid var(--border);
+    border-radius: var(--radius-md);
+    color: var(--text-primary);
+    font-size: 13px;
+    font-family: var(--font-sans);
+    outline: none;
+    transition: all var(--transition);
+}
+
+.form-group textarea, #vizCode {
+    font-family: var(--font-mono);
+    font-size: 12px;
+    line-height: 1.6;
+    resize: vertical;
+    tab-size: 2;
+}
+
+.form-group input:focus,
+.form-group textarea:focus,
+.modal-body textarea:focus {
+    border-color: var(--accent);
+    box-shadow: 0 0 0 3px var(--accent-glow);
+}
+
+.overrides-section {
+    margin-top: 16px;
+    padding: 16px;
+    background: rgba(0,0,0,0.2);
+    border-radius: var(--radius-md);
+    border: 1px solid var(--border);
+}
+
+.overrides-section h4 {
+    font-size: 12px;
+    font-weight: 600;
+    margin-bottom: 4px;
+}
+
+.hint {
+    font-size: 11px;
+    color: var(--text-muted);
+    margin-bottom: 12px;
+}
+
+.override-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 12px;
+}
+
+.override-item {
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+}
+
+.toggle-label {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    font-size: 12px;
+    color: var(--text-secondary);
+    cursor: pointer;
+}
+
+.toggle-label input[type="checkbox"] {
+    accent-color: var(--accent);
+    width: 14px;
+    height: 14px;
+}
+
+input[type="color"] {
+    width: 100%;
+    height: 28px;
+    border: 1px solid var(--border);
+    border-radius: var(--radius-sm);
+    cursor: pointer;
+    background: transparent;
+    padding: 2px;
+}
+
+.range-row {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+.range-row input[type="range"] {
+    flex: 1;
+    accent-color: var(--accent);
+    height: 4px;
+}
+
+.range-val {
+    font-size: 11px;
+    color: var(--text-muted);
+    font-family: var(--font-mono);
+    min-width: 36px;
+    text-align: right;
+}
+
+.form-actions {
+    display: flex;
+    gap: 8px;
+    margin-top: 16px;
+}
+
+.btn-primary {
+    padding: 10px 20px;
+    background: var(--accent);
+    border: none;
+    border-radius: var(--radius-md);
+    color: #fff;
+    cursor: pointer;
+    font-weight: 600;
+    font-size: 13px;
+    font-family: var(--font-sans);
+    transition: all var(--transition);
+}
+
+.btn-primary:hover {
+    background: var(--accent-hover);
+    box-shadow: 0 4px 20px var(--accent-glow);
+    transform: translateY(-1px);
+}
+
+.btn-primary:active {
+    transform: translateY(0);
+}
+
+.btn-secondary {
+    padding: 10px 20px;
+    background: transparent;
+    border: 1px solid var(--border);
+    border-radius: var(--radius-md);
+    color: var(--text-secondary);
+    cursor: pointer;
+    font-size: 13px;
+    font-family: var(--font-sans);
+    transition: all var(--transition);
+}
+
+.btn-secondary:hover {
+    background: rgba(255,255,255,0.04);
+    color: var(--text-primary);
+    border-color: var(--border-hover);
+}
+
+hr {
+    border: none;
+    border-top: 1px solid var(--border);
+    margin: 20px 0;
+}
+
+/* Import / Export */
+#importData, #exportData {
+    font-family: var(--font-mono);
+    font-size: 11px;
+    color: var(--success);
+    line-height: 1.5;
+}
+
+/* ── Import Tabs ── */
+.import-tabs {
+    display: flex;
+    gap: 4px;
+    margin-bottom: 16px;
+    background: rgba(0,0,0,0.2);
+    border-radius: var(--radius-md);
+    padding: 3px;
+}
+
+.import-tab {
+    flex: 1;
+    padding: 8px;
+    background: none;
+    border: none;
+    color: var(--text-muted);
+    font-size: 12px;
+    font-family: var(--font-sans);
+    font-weight: 500;
+    border-radius: var(--radius-sm);
+    cursor: pointer;
+    transition: all var(--transition);
+}
+
+.import-tab:hover {
+    color: var(--text-secondary);
+}
+
+.import-tab.active {
+    background: var(--accent);
+    color: #fff;
+}
+
+.import-area.hidden {
+    display: none;
+}
+
+.file-drop-zone {
+    border: 2px dashed var(--border);
+    border-radius: var(--radius-md);
+    padding: 40px 20px;
+    text-align: center;
+    cursor: pointer;
+    transition: all var(--transition);
+    color: var(--text-muted);
+}
+
+.file-drop-zone:hover,
+.file-drop-zone.dragover {
+    border-color: var(--accent);
+    background: rgba(var(--accent-r), var(--accent-g), var(--accent-b), 0.05);
+    color: var(--text-secondary);
+}
+
+.file-drop-zone svg {
+    display: block;
+    margin: 0 auto 12px;
+    opacity: 0.4;
+}
+
+.file-drop-zone p {
+    font-size: 13px;
+    margin-bottom: 4px;
+}
+
+#fileNameDisplay {
+    font-size: 12px;
+    color: var(--accent);
+    font-weight: 500;
+}
+
+.hidden-input {
+    position: absolute;
+    width: 0;
+    height: 0;
+    opacity: 0;
+    pointer-events: none;
+}
+
+/* ── Responsive ── */
+@media (max-width: 768px) {
+    .viz-editor-body {
+        flex-direction: column;
+    }
+    .viz-editor-right {
+        width: 100%;
+    }
+    #playlistPanel {
+        width: calc(100% - 40px);
+        left: 20px;
+        bottom: 80px;
+        top: auto;
+        transform: none;
+        max-height: 40vh;
+    }
+    #vizPanel {
+        width: calc(100% - 40px);
+        right: auto;
+        left: 20px;
+        bottom: 80px;
+    }
+    .override-grid {
+        grid-template-columns: 1fr;
+    }
+}
